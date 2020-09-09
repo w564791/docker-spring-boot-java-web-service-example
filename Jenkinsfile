@@ -23,7 +23,9 @@ pipeline {
     }
     stage('@admin') {
       steps {
-        input(message: '@admin  ', submitter: 'admin')
+          timeout(time: 500, unit: 'SECONDS') {
+            input(message: 'Ready to go?  ', submitter: 'admin')
+          }
       }
     }
     stage('envregister') {
