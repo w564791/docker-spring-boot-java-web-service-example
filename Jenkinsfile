@@ -33,8 +33,9 @@ pipeline {
           
           img_name = sh(returnStdout: true, script: 'basename  `git config --get remote.origin.url` .git').trim()
           build_tag = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+          LOCAL_RRANCH=sh(returnStdout: true,script: 'git rev-parse --abbrev-ref HEAD').trim()
           VERSION = readMavenPom().getVersion()
-          build_tag = "${params.BRANCH}-${build_tag}-${VERSION}"
+          build_tag = "${LOCAL_RRANCH}-${build_tag}-${VERSION}"
           docker_img_name = "${docker_host}/${img_name}:${build_tag}"
 
         }
