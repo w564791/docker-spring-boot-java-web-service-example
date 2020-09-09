@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${img_name}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        build_number: ${build_tag}
+        app: ${img_name}
+        role: rolling-update
+    spec:
+      containers:
+      - name: ${img_name}       
+        image: ${docker_img_name}
+        ports:
+        - containerPort: 8080
