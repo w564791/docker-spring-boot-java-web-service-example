@@ -1,9 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  labels:
+        build_number: ${build_tag}
+        app: ${img_name}
+        role: rolling-update
   name: ${img_name}
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      build_number: ${build_tag}
+      app: ${img_name}
+      role: rolling-update
   template:
     metadata:
       labels:
