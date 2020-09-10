@@ -6,8 +6,9 @@ pipeline {
     }
 
   }
+ options { timestamps() }
   stages {
-    stage('get') {
+    stage('kubectl helm test') {
       steps {
         script {
           withCredentials([kubeconfigFile(credentialsId: 'local', variable: 'config')]) {
@@ -21,25 +22,28 @@ pipeline {
 
       }
     }
-    stage('@admin') {
+    stage('submit to admin') {
       steps {
           timeout(time: 500, unit: 'SECONDS') {
             input(message: 'Ready to go?  ', submitter: 'admin')
           }
+     
       }
     }
-    stage('envregister') {
+    stage('build docker image') {
       steps {
         script {
           docker_host = "w564791"
           
           img_name = sh(returnStdout: true, script: 'basename  `git config --get remote.origin.url` .git').trim()
           build_tag = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-          LOCAL_RRANCH=sh(returnStdout: true,script: 'git rev-parse --abbrev-ref HEAD').trim()
-          VERSION = readMavenPom().getVersion()
-          build_tag = "${LOCAL_RRANCH}-${build_tag}-${VERSION}"
-          docker_img_name = "${docker_host}/${img_name}:${build_tag}"
 
+          VERSION = readMavenPom().getVersion()
+          build_tag = "${params.BRANCH}-${build_tag}-${VERSION}"
+          docker_img_name = "${docker_host}/${img_name}:${build_tag}"
+          env.img_name="${img_name}"
+          env.build_tag="${build_tag}"
+          env.docker_img_name="${docker_img_name}"
         }
 
         sh 'mvn package'
@@ -50,6 +54,12 @@ pipeline {
           }
         }
 
+      }
+    }
+    stage('deploy to dev') {
+      steps {
+          sh 'pwd &&ls'
+        kubernetesDeploy(enableConfigSubstitution: true, deleteResource: false, kubeconfigId: 'local', configs: 'deploy.yaml')
       }
     }
   }
